@@ -1,0 +1,60 @@
+# PDF Reader RAG Pipeline Workflow
+
+Here is the high-level workflow and architecture for a PDF reader that uses a Retrieval-Augmented Generation (RAG) pipeline to accurately answer questions based on the document's content.
+
+## Architecture Diagram
+
+```mermaid
+graph TD
+    classDef userNode fill:#f9f,stroke:#333,stroke-width:2px;
+    classDef processNode fill:#bbf,stroke:#333,stroke-width:1px;
+    classDef dbNode fill:#fbb,stroke:#333,stroke-width:1px;
+    classDef resultNode fill:#bfb,stroke:#333,stroke-width:2px;
+
+    subgraph "1. Document Ingestion (Offline)"
+        A[User Uploads PDF]:::userNode --> B(PDF Parser Text Extraction):::processNode
+        B --> C{Text Splitter Chunking}:::processNode
+        C -->|Text Chunks| D(Embedding Model):::processNode
+    end
+
+    subgraph "2. Vector Storage"
+        D -->|Vector Embeddings| E[(Vector Database)]:::dbNode
+    end
+
+    subgraph "3. Query Processing (Online)"
+        F[User Asks Question]:::userNode --> G(Embedding Model):::processNode
+        G -->|Query Vector| E
+        E -->|Top K Similar Chunks| H[Context Retrieval]:::processNode
+    end
+
+    subgraph "4. Answer Generation"
+        H -->|Context + Query| I(Large Language Model LLM):::processNode
+        F --> I
+        I --> J[Generated Answer]:::resultNode
+    end
+```
+
+## Step-by-Step Workflow
+
+### Phase 1: Document Ingestion (Preparation Phase)
+1. **Upload:** The user uploads a PDF file to the application.
+2. **Parsing & Extraction:** A PDF parsing library reads the PDF and extracts the raw text. Complex PDFs might require OCR if they contain scanned images.
+3. **Chunking:** Because Large Language Models (LLMs) have a context window limit, the extracted text is broken down into smaller, overlapping segments (e.g., 500-1000 characters) using a text splitter. Overlap ensures that context isn't lost between chunk boundaries.
+4. **Embedding:** Each text chunk is passed through an embedding model. This model converts the semantic meaning of the text into a dense vector (an array of numbers) that a computer can understand.
+5. **Storage:** These vectors, along with the original text chunks as metadata, are stored in a Vector Database for fast similarity searches later.
+
+### Phase 2: Question Answering (Interaction Phase)
+1. **User Query:** The user inputs a question related to the uploaded PDF.
+2. **Query Embedding:** The user's question is passed through the *exact same* embedding model used in Phase 1 to generate a query vector.
+3. **Semantic Retrieval:** The vector database compares the query vector against the stored document vectors using a similarity metric (like Cosine Similarity). It retrieves the top 'K' most similar text chunks, which represent the parts of the PDF most relevant to the question.
+4. **Prompt Construction:** A specialized prompt is built containing the retrieved text chunks as "context" alongside the user's original "question". The prompt instructs the LLM to base its answer *only* on the provided context.
+5. **Generation:** The prompt is sent to the LLM.
+6. **Response:** The LLM generates the final answer, synthesizing the information from the relevant chunks, and presents it to the user.
+
+## Recommended Tech Stack (Python)
+* **Orchestration Framework:** LangChain or LlamaIndex
+* **PDF Parsing:** `PyPDF2`, `PyMuPDF` (fitz), or `Unstructured` (for complex layouts)
+* **Embeddings Model:** OpenAI Embeddings (`text-embedding-3-small`) or HuggingFace (`sentence-transformers/all-MiniLM-L6-v2` for local, free embeddings)
+* **Vector Database:** ChromaDB (great for local use), FAISS, or Pinecone (managed cloud)
+* **LLM:** OpenAI GPT-4o / GPT-4o-mini, Anthropic Claude 3.5 Sonnet, or local models via Ollama (e.g., Llama 3)
+* **Frontend UI:** Streamlit or Gradio (for rapid prototyping in Python)

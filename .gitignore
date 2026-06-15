@@ -1,0 +1,18 @@
+# Environment Variables
+.env
+
+# Python Caches
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Streamlit config (if you have personal settings)
+.streamlit/
+
+# Temporary or uploaded PDFs
+*.pdf
+
+# Virtual Environments
+venv/
+env/
+.venv/
