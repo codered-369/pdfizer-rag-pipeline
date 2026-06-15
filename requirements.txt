@@ -7,3 +7,4 @@ langchain-google-genai>=1.0.1
 pypdf>=4.1.0
 python-dotenv>=1.0.1
 sentence-transformers>=2.6.0
+protobuf<4.0.0
