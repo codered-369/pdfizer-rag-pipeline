@@ -154,7 +154,8 @@ if uploaded_file is not None:
         st.markdown("<br>", unsafe_allow_html=True)
     
     # Configure the Retriever
-    retriever = vectorstore.as_retriever(search_kwargs={"k": 4}) # Retrieve top 4 most similar chunks
+    k_value = min(4, st.session_state.doc_stats["chunks"]) if "doc_stats" in st.session_state else 4
+    retriever = vectorstore.as_retriever(search_kwargs={"k": k_value}) # Retrieve up to 4 most similar chunks
 
     # 4. RAG Pipeline Setup
     # Create the prompt template
