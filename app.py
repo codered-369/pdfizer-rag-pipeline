@@ -1,5 +1,8 @@
 import streamlit as st
 import os
+
+# Fix Protocol Buffer version compatibility issue on Streamlit Cloud
+os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"
 import tempfile
 import time
 import uuid
