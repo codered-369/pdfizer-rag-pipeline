@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
-from langchain_chroma import Chroma
+from langchain_community.vectorstores import FAISS
 from langchain_core.prompts import PromptTemplate
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains import create_retrieval_chain
@@ -102,13 +102,10 @@ if uploaded_file is not None:
             time.sleep(0.5)
 
             st.write("🧠 **Phase 3: Vector Indexing** - Generating embeddings and storing in database...")
-            # Creates an ephemeral ChromaDB instance in memory with a unique collection name
-            # This ensures old documents from previous uploads are not mixed in!
-            unique_id = uuid.uuid4().hex
-            vectorstore = Chroma.from_documents(
+            # Create a FAISS vector database (bypasses all ChromaDB/Protobuf cloud bugs)
+            vectorstore = FAISS.from_documents(
                 documents=splits, 
-                embedding=embeddings, 
-                collection_name=f"pdf_collection_{unique_id}"
+                embedding=embeddings
             )
             st.write("✅ Vector database fully indexed.")
             progress_bar.progress(100)
