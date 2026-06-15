@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
-from langchain_community.vectorstores import FAISS
+from langchain_community.vectorstores import SKLearnVectorStore
 from langchain_core.prompts import PromptTemplate
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains import create_retrieval_chain
@@ -102,8 +102,8 @@ if uploaded_file is not None:
             time.sleep(0.5)
 
             st.write("🧠 **Phase 3: Vector Indexing** - Generating embeddings and storing in database...")
-            # Create a FAISS vector database (bypasses all ChromaDB/Protobuf cloud bugs)
-            vectorstore = FAISS.from_documents(
+            # Create an SKLearn vector database (bypasses FAISS compilation bugs and ChromaDB bugs!)
+            vectorstore = SKLearnVectorStore.from_documents(
                 documents=splits, 
                 embedding=embeddings
             )
