@@ -10,8 +10,6 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_community.vectorstores import SKLearnVectorStore
 from langchain_core.prompts import PromptTemplate
-from langchain.chains.combine_documents import create_stuff_documents_chain
-from langchain.chains import create_retrieval_chain
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 # Load environment variables from .env file
@@ -174,10 +172,6 @@ if uploaded_file is not None:
     )
 
     prompt = PromptTemplate.from_template(system_prompt_template)
-    
-    # Create the Chains
-    question_answer_chain = create_stuff_documents_chain(llm, prompt)
-    rag_chain = create_retrieval_chain(retriever, question_answer_chain)
 
     st.divider()
 
@@ -286,9 +280,12 @@ if uploaded_file is not None:
         # Generate and display AI response
         with st.chat_message("assistant"):
             with st.spinner("Analyzing document and generating answer..."):
-                response = rag_chain.invoke({"input": user_query})
-                answer = response["answer"]
-                source_documents = response["context"]
+                # Pure Python RAG implementation (bypassing Langchain's broken imports!)
+                source_documents = retriever.invoke(user_query)
+                context_text = "\n\n".join([f"Source (Page {doc.metadata.get('page', 'Unknown')}):\n{doc.page_content}" for doc in source_documents])
+                
+                final_prompt = prompt.format(context=context_text, input=user_query)
+                answer = llm.invoke(final_prompt).content
 
                 st.write(answer)
                 
