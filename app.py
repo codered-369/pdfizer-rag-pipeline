@@ -8,9 +8,15 @@ from dotenv import load_dotenv
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
-from langchain_community.vectorstores import SKLearnVectorStore
+from langchain_community.vectorstores import SKLearnVectorStore # or InMemoryVectorStore
 from langchain_core.prompts import PromptTemplate
 from langchain_google_genai import ChatGoogleGenerativeAI
+
+#STEPS
+#document loading
+#splitting 
+#embeddings and vector stores
+
 
 # Load environment variables from .env file
 load_dotenv()
@@ -29,9 +35,9 @@ def get_embeddings(key):
 
 # Check for API Key
 api_key = os.environ.get("GOOGLE_API_KEY")
-if not api_key or api_key == "your_google_api_key_here":
+if not api_key or api_key == "":
     st.warning("Please set your GOOGLE_API_KEY in the `.env` file to enable the LLM.")
-    st.info("Rename `.env.example` to `.env` and paste your Google API key.")
+    st.info(" Google API key.")
     st.stop()
 
 # Initialize LLM (Gemini 3.1 Flash Lite)
@@ -154,8 +160,8 @@ if uploaded_file is not None:
         st.markdown("<br>", unsafe_allow_html=True)
     
     # Configure the Retriever
-    k_value = min(4, st.session_state.doc_stats["chunks"]) if "doc_stats" in st.session_state else 4
-    retriever = vectorstore.as_retriever(search_kwargs={"k": k_value}) # Retrieve up to 4 most similar chunks
+    k_value = min(50, st.session_state.doc_stats["chunks"]) if "doc_stats" in st.session_state else 50
+    retriever = vectorstore.as_retriever(search_kwargs={"k": k_value}) # Retrieve up to 50 most similar chunks
 
     # 4. RAG Pipeline Setup
     # Create the prompt template
